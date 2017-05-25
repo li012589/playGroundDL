@@ -6,11 +6,11 @@ import pygame.surfarray as surfarray
 from pygame.locals import *
 from itertools import cycle
 
-FPS = 30
-SCREENWIDTH  = 288
-SCREENHEIGHT = 512
-PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
-BASEY        = SCREENHEIGHT * 0.79
+#FPS = 30
+#SCREENWIDTH  = 288
+#SCREENHEIGHT = 512
+#PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
+#BASEY        = SCREENHEIGHT * 0.79
 
 def load():
     PLAYER_PATH = (
@@ -252,4 +252,36 @@ class GameState:
         return image_data, reward, terminal
 
 if __name__ == "__main__":
+    FPS = 30
+    SCREENWIDTH  = 288
+    SCREENHEIGHT = 512
+
+    pygame.init()
+    FPSCLOCK = pygame.time.Clock()
+    SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+    pygame.display.set_caption('Flappy Bird')
+
+    IMAGES, SOUNDS, HITMASKS = load()
+    PIPEGAPSIZE = 100 # gap between upper and lower part of pipe
+    BASEY = SCREENHEIGHT * 0.79
+
+    PLAYER_WIDTH = IMAGES['player'][0].get_width()
+    PLAYER_HEIGHT = IMAGES['player'][0].get_height()
+    PIPE_WIDTH = IMAGES['pipe'][0].get_width()
+    PIPE_HEIGHT = IMAGES['pipe'][0].get_height()
+    BACKGROUND_WIDTH = IMAGES['background'].get_width()
+
+    PLAYER_INDEX_GEN = cycle([0, 1, 2, 1])
     
+    g = GameState()
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+                input_actions=[0,1]
+            else:
+                input_actions=[1,0]
+        g.frame_step(input_actions)
