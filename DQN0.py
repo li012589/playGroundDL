@@ -14,18 +14,26 @@ pygame.init()
 FPSCLOCK = pygame.time.Clock()
 SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 pygame.display.set_caption('Flappy Bird')
-
 IMAGES, SOUNDS, HITMASKS = load()
 PIPEGAPSIZE = 100 # gap between upper and lower part of pipe
 BASEY = SCREENHEIGHT * 0.79
-
 PLAYER_WIDTH = IMAGES['player'][0].get_width()
 PLAYER_HEIGHT = IMAGES['player'][0].get_height()
 PIPE_WIDTH = IMAGES['pipe'][0].get_width()
 PIPE_HEIGHT = IMAGES['pipe'][0].get_height()
 BACKGROUND_WIDTH = IMAGES['background'].get_width()
-
 PLAYER_INDEX_GEN = cycle([0, 1, 2, 1])
+
+GAME = 'bird' # the name of the game being played for log files
+ACTIONS = 2 # number of valid actions
+GAMMA = 0.99 # decay rate of past observations
+OBSERVE = 100000. # timesteps to observe before training
+EXPLORE = 2000000. # frames over which to anneal epsilon
+FINAL_EPSILON = 0.0001 # final value of epsilon
+INITIAL_EPSILON = 0.0001 # starting value of epsilon
+REPLAY_MEMORY = 50000 # number of previous transitions to remember
+BATCH = 32 # size of minibatch
+FRAME_PER_ACTION = 1
 
 
 def weight_variable(shape):
@@ -90,12 +98,22 @@ def trainNetwork(s, readout, h_fc1, sess):
     cost = tf.reduce_mean(tf.square(y - readout_action))
     train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
+    # open up a game state to communicate with emulator
+    game_state = game.GameState()
+
+    # store the previous observations in replay memory
+    D = deque()
+    
+    # printing
+    a_file = open("logs_" + GAME + "/readout.txt", 'w')
+    h_file = open("logs_" + GAME + "/hidden.txt", 'w')
+
     
 
 def main():
     sess = tf.InteractiveSession()
     s, readout, h_fc1 = createNetwork()
-    pass
+    trainNetwork(s, readout, h_fc1, sess)
 
 if __name__ == '__main__':
     main()
