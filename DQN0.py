@@ -4,25 +4,10 @@ import sys
 import random
 import numpy as np
 from collections import deque
+import pygame
+#from itertools import cycle
+
 import flappybird as game
-
-FPS = 30
-SCREENWIDTH  = 288
-SCREENHEIGHT = 512
-
-pygame.init()
-FPSCLOCK = pygame.time.Clock()
-SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
-pygame.display.set_caption('Flappy Bird')
-IMAGES, SOUNDS, HITMASKS = load()
-PIPEGAPSIZE = 100 # gap between upper and lower part of pipe
-BASEY = SCREENHEIGHT * 0.79
-PLAYER_WIDTH = IMAGES['player'][0].get_width()
-PLAYER_HEIGHT = IMAGES['player'][0].get_height()
-PIPE_WIDTH = IMAGES['pipe'][0].get_width()
-PIPE_HEIGHT = IMAGES['pipe'][0].get_height()
-BACKGROUND_WIDTH = IMAGES['background'].get_width()
-PLAYER_INDEX_GEN = cycle([0, 1, 2, 1])
 
 GAME = 'bird' # the name of the game being played for log files
 ACTIONS = 2 # number of valid actions
@@ -50,7 +35,7 @@ def conv2d(x, W, stride):
 def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = "SAME")
 
-def creatNetwork():
+def createNetwork():
     # network weights
     W_conv1 = weight_variable([8, 8, 4, 32])
     b_conv1 = bias_variable([32])
@@ -105,8 +90,8 @@ def trainNetwork(s, readout, h_fc1, sess):
     D = deque()
 
     # printing
-    a_file = open("logs_" + GAME + "/readout.txt", 'w')
-    h_file = open("logs_" + GAME + "/hidden.txt", 'w')
+    #a_file = open("logs_" + GAME + "/readout.txt", 'w')
+    #h_file = open("logs_" + GAME + "/hidden.txt", 'w')
 
     # get the first state by doing nothing and preprocess the image to 80x80x4
     do_nothing = np.zeros(ACTIONS)
@@ -207,12 +192,10 @@ def trainNetwork(s, readout, h_fc1, sess):
         else:
             state = "train"
 
-        '''
         print("TIMESTEP", t, "/ STATE", state, \
             "/ EPSILON", epsilon, "/ ACTION", action_index, "/ REWARD", r_t, \
             "/ Q_MAX %e" % np.max(readout_t))
         # write info to files
-        '''
         '''
         if t % 10000 <= 100:
             a_file.write(",".join([str(x) for x in readout_t]) + '\n')
