@@ -1,0 +1,4 @@
+*.pyc
+membackup/Y*
+saved_networks/*
+!saved_networks/placeholder
