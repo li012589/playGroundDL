@@ -12,6 +12,8 @@ class M:
             self.matrix = np.random.random(tuple([size*size]))
             self.matrix[self.matrix<0.5] = -1
             self.matrix[self.matrix>=0.5] = 1
+    def calculateNo(self,i,j):
+        return j*self.size+i
     def init(self):
         self.adjacentTab = {}
         for i in range(self.size):
@@ -32,13 +34,13 @@ class M:
                     u = 0
                 else:
                     u = j+1
-                self.adjacentTab[(i,j)] = [(r,j),(l,j),(i,u),(i,d)]
+                self.adjacentTab[self.calculateNo(i,j)] = [self.calculateNo(r,j),self.calculateNo(l,j),self.calculateNo(i,u),self.calculateNo(i,d)]
 
 def main():
     mm = M(4,-0)
     mm.init()
     print mm.matrix
-    print mm.adjacentTab[(3,3)]
+    print mm.adjacentTab[(0)]
 
 if __name__ == "__main__":
     main()
