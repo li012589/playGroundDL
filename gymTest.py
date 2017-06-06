@@ -74,7 +74,7 @@ def train(sess,env,network):
             s = s2
             t += 1
             if t % SAVE_PER_STEP == 0:
-                saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
+                saver.save(sess, 'savedQnetwork/' + ENV_NAME + '-dqn', global_step = t)
             # print info
             state = ""
             if t <= OBSERVE_TIME:
