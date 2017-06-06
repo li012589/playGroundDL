@@ -86,5 +86,51 @@ class Qnetwork:
     def targetPredict(self,inputs):
         return self.sess.run(self.out,feed_dict={self.targetInputs:inputs})
 
+def trainQnetwork(sess,env,network,maxBuffSize,MAX_EPISODES,MAX_EP_STEPS,RENDER_ENV,INITIAL_EPSILON,FINAL_EPSILON,OBSERVE_TIME,EXPLORE,SAVE_PER_STEP,BATCH_SIZE):
+    network.updateTargetNetwork()
+    Buff = replayBuff(maxBuffSize)
+    saver = tf.train.Saver()
+    checkpoint = tf.train.get_checkpoint_state("savedQnetwork")
+    epsilon = INITIAL_EPSILON
+    t = 0
+    if checkpoint and checkpoint.model_checkpoint_path:
+        saver.restore(sess, checkpoint.model_checkpoint_path)
+        print("Successfully loaded:", checkpoint.model_checkpoint_path)
+    else:
+        print("Could not find old network weights")
+    for i in xrange(MAX_EPISODES):
+        s = env.reset()
+        for j in xrange(MAX_EP_STEPS):
+            if RENDER_ENV:
+                env.render()
+            if random.random() <= epsilon:
+                a = env.action_space.sample()
+            else:
+                a = np.argmax(network.predict(np.reshape(s,(1,network.sDim)))[0])
+
+            if epsilon > FINAL_EPSILON and t > OBSERVE_TIME:
+                epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
+
+            s2,r,t,info = env.step(a)
+            Buff.add(np.reshape(s, (actor.s_dim,)), np.reshape(a, (actor.a_dim,)), r,t, np.reshape(s2, (actor.s_dim,)))
+            if t > OBSERVE_TIME and Buff.size()>BATCH_SIZE:
+                s_batch, a_batch, r_batch, t_batch, s2_batch = replay_buffer.sample_batch(BATCH_SIZE)
+                target_q = critic.predict_target(s2_batch)
+                y_batch = []
+                for k in xrange(BATCH_SIZE):
+                    if t_batch[k]:
+                        y_batch.append(r_batch[k])
+                    else:
+                        y_batch.append(r_batch[k]+GAMMA*target_q[k])
+                network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
+                network.updateTargetNetwork()
+            s = s2
+            t += 1
+            if t % SAVE_PER_STEP == 0:
+            saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
+            if t:
+                break
+
+
 if __name__ == "__main__":
     pass
