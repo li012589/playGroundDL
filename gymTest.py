@@ -3,14 +3,14 @@ import gym
 import numpy as np
 from Qlearn import *
 
-RENDER_ENV = True
+RENDER_ENV = False
 ENV_NAME = 'CartPole-v0'
 maxBuffSize = 10000
 BATCH_SIZE = 64
 SAVE_PER_STEP = 10000
 
 OBSERVE = False
-OBSERVE_TIME = 100000
+OBSERVE_TIME = 10
 FINAL_EPSILON = 0.0001 # final value of epsilon
 INITIAL_EPSILON = 0.0001 # starting value of epsilon
 EXPLORE = 200000000
@@ -44,31 +44,46 @@ def train(sess,env,network):
             if RENDER_ENV:
                 env.render()
             if random.random() <= epsilon:
-                a = env.action_space.sample()
+                aIndex = env.action_space.sample()
             else:
-                a = np.argmax(network.predict(np.reshape(s,(1,network.sDim)))[0])
+                q = network.predict(np.reshape(s,(1,network.sDim)))[0]
+                aIndex = np.argmax(q)
+
+            a = np.zeros([network.aDim])
+            a[aIndex] = 1
 
             if epsilon > FINAL_EPSILON and t > OBSERVE_TIME:
                 epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
-            s2,r,t,info = env.step(a)
+            s2,r,d,info = env.step(aIndex)
             Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,t, np.reshape(s2, (network.sDim,)))
-            if t > OBSERVE_TIME and Buff.size()>BATCH_SIZE:
-                s_batch, a_batch, r_batch, t_batch, s2_batch = replay_buffer.sample_batch(BATCH_SIZE)
-                target_q = critic.predict_target(s2_batch)
+            if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
+                s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
+                target_q = network.targetPredict(s2_batch)
                 y_batch = []
                 for k in xrange(BATCH_SIZE):
-                    if t_batch[k]:
+                    if d_batch[k]:
                         y_batch.append(r_batch[k])
                     else:
-                        y_batch.append(r_batch[k]+GAMMA*target_q[k])
+                        y_batch.append(r_batch[k]+GAMMA*np.max(target_q[k]))
                 network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
                 network.targetUpdate()
             s = s2
             t += 1
             if t % SAVE_PER_STEP == 0:
                 saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
-            if t:
+            # print info
+            state = ""
+            if t <= OBSERVE_TIME:
+                state = "observe"
+            elif t > OBSERVE_TIME and t <= OBSERVE_TIME + EXPLORE:
+                state = "explore"
+            else:
+                state = "train"
+            #print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
+            print(a)
+            if d:
+                print("break")
                 break
 
 def main():

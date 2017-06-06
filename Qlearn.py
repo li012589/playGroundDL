@@ -66,6 +66,7 @@ class Qnetwork:
         self.loss = tf.reduce_mean(tf.square(self.y - self.predictionValue))
 
         self.optimize = tf.train.AdamOptimizer(self.learningRate).minimize(self.loss)
+        self.sess.run(tf.global_variables_initializer())
     def createNetwork(self):
         W_fc1 = weight_variable([self.sDim,300])
         b_fc1 = bias_variable([300])
@@ -77,64 +78,16 @@ class Qnetwork:
         h_fc1 = tf.nn.relu(tf.matmul(inputs, W_fc1) + b_fc1)
         h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
-        out = tf.matmul(h_fc2,W_fc3) + W_fc3 #see ddpg for details in init w between -0.003--0.003
-        self.sess.run(tf.global_variables_initializer())
+        out = tf.matmul(h_fc2,W_fc3) + b_fc3 #see ddpg for details in init w between -0.003--0.003
         return inputs,out
     def train(self,inputs,actions,y):
         return self.sess.run(self.optimize,feed_dict={self.inputs:inputs,self.a:actions,self.y:y})
     def predict(self,inputs):
         return self.sess.run(self.out,feed_dict={self.inputs:inputs})
     def targetPredict(self,inputs):
-        return self.sess.run(self.out,feed_dict={self.targetInputs:inputs})
+        return self.sess.run(self.targetOut,feed_dict={self.targetInputs:inputs})
     def targetUpdate(self):
         return self.sess.run(self.updateTargetNetwork)
-
-def trainQnetwork(sess,env,network,maxBuffSize,MAX_EPISODES,MAX_EP_STEPS,RENDER_ENV,INITIAL_EPSILON,FINAL_EPSILON,OBSERVE_TIME,EXPLORE,SAVE_PER_STEP,BATCH_SIZE):
-    network.targetUpdate()
-    Buff = replayBuff(maxBuffSize)
-    #sess.run(tf.initialize_all_variables())
-    saver = tf.train.Saver()
-    checkpoint = tf.train.get_checkpoint_state("savedQnetwork")
-    epsilon = INITIAL_EPSILON
-    t = 0
-    if checkpoint and checkpoint.model_checkpoint_path:
-        saver.restore(sess, checkpoint.model_checkpoint_path)
-        print("Successfully loaded:", checkpoint.model_checkpoint_path)
-    else:
-        print("Could not find old network weights")
-    for i in xrange(MAX_EPISODES):
-        s = env.reset()
-        for j in xrange(MAX_EP_STEPS):
-            if RENDER_ENV:
-                env.render()
-            if random.random() <= epsilon:
-                a = env.action_space.sample()
-            else:
-                a = np.argmax(network.predict(np.reshape(s,(1,network.sDim)))[0])
-
-            if epsilon > FINAL_EPSILON and t > OBSERVE_TIME:
-                epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
-
-            s2,r,t,info = env.step(a)
-            Buff.add(np.reshape(s, (actor.s_dim,)), np.reshape(a, (actor.a_dim,)), r,t, np.reshape(s2, (actor.s_dim,)))
-            if t > OBSERVE_TIME and Buff.size()>BATCH_SIZE:
-                s_batch, a_batch, r_batch, t_batch, s2_batch = replay_buffer.sample_batch(BATCH_SIZE)
-                target_q = critic.predict_target(s2_batch)
-                y_batch = []
-                for k in xrange(BATCH_SIZE):
-                    if t_batch[k]:
-                        y_batch.append(r_batch[k])
-                    else:
-                        y_batch.append(r_batch[k]+GAMMA*target_q[k])
-                network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
-                network.targetUpdate()
-            s = s2
-            t += 1
-            if t % SAVE_PER_STEP == 0:
-                saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
-            if t:
-                break
-
 
 if __name__ == "__main__":
     pass
