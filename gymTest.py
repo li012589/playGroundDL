@@ -3,7 +3,7 @@ import gym
 import numpy as np
 from Qlearn import *
 
-RENDER_ENV = False
+RENDER_ENV = True
 ENV_NAME = 'CartPole-v0'
 maxBuffSize = 10000
 BATCH_SIZE = 64
@@ -12,7 +12,7 @@ SAVE_PER_STEP = 10000
 OBSERVE = False
 OBSERVE_TIME = 10
 FINAL_EPSILON = 0.0001 # final value of epsilon
-INITIAL_EPSILON = 0.0001 # starting value of epsilon
+INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 
 # Max training steps
@@ -44,6 +44,7 @@ def train(sess,env,network):
             if RENDER_ENV:
                 env.render()
             if random.random() <= epsilon:
+                #print("exploring")
                 aIndex = env.action_space.sample()
             else:
                 q = network.predict(np.reshape(s,(1,network.sDim)))[0]
@@ -56,6 +57,8 @@ def train(sess,env,network):
                 epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
             s2,r,d,info = env.step(aIndex)
+            if d:
+                r = -10
             Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,t, np.reshape(s2, (network.sDim,)))
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
@@ -80,8 +83,8 @@ def train(sess,env,network):
                 state = "explore"
             else:
                 state = "train"
-            #print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
-            print(a)
+            print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
+            #print(r)
             if d:
                 print("break")
                 break
@@ -90,7 +93,7 @@ def main():
     env = gym.make(ENV_NAME)
     sess = tf.InteractiveSession()
     sDim = env.observation_space.shape[0]
-    aDim = 1#env.action_space.shape[0]
+    aDim = 2#env.action_space.shape[0]
     network = Qnetwork(sess,sDim,aDim,LEARNING_RATE,TAU)
     train(sess,env,network)
 
