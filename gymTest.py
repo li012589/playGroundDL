@@ -26,8 +26,9 @@ GAMMA = 0.99
 TAU = 0.001
 
 def train(sess,env,network):
-    network.updateTargetNetwork()
+    network.targetUpdate()
     Buff = replayBuff(maxBuffSize)
+    #sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     checkpoint = tf.train.get_checkpoint_state("savedQnetwork")
     epsilon = INITIAL_EPSILON
@@ -51,7 +52,7 @@ def train(sess,env,network):
                 epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
             s2,r,t,info = env.step(a)
-            Buff.add(np.reshape(s, (actor.s_dim,)), np.reshape(a, (actor.a_dim,)), r,t, np.reshape(s2, (actor.s_dim,)))
+            Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,t, np.reshape(s2, (network.sDim,)))
             if t > OBSERVE_TIME and Buff.size()>BATCH_SIZE:
                 s_batch, a_batch, r_batch, t_batch, s2_batch = replay_buffer.sample_batch(BATCH_SIZE)
                 target_q = critic.predict_target(s2_batch)
@@ -62,11 +63,11 @@ def train(sess,env,network):
                     else:
                         y_batch.append(r_batch[k]+GAMMA*target_q[k])
                 network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
-                network.updateTargetNetwork()
+                network.targetUpdate()
             s = s2
             t += 1
             if t % SAVE_PER_STEP == 0:
-            saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
+                saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
             if t:
                 break
 
@@ -74,7 +75,7 @@ def main():
     env = gym.make(ENV_NAME)
     sess = tf.InteractiveSession()
     sDim = env.observation_space.shape[0]
-    aDim = env.action_space.shape[0]
+    aDim = 1#env.action_space.shape[0]
     network = Qnetwork(sess,sDim,aDim,LEARNING_RATE,TAU)
     train(sess,env,network)
 

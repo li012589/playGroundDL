@@ -21,7 +21,7 @@ class replayBuff:
         self.size = 0
         self.maxSize = maxSize
     def add(self,s,a,r,t,s2):
-        if self.szie <= self.maxSize:
+        if self.size <= self.maxSize:
             self.buffer.append((s,a,r,t,s2))
             self.size += 1
         else:
@@ -67,17 +67,18 @@ class Qnetwork:
 
         self.optimize = tf.train.AdamOptimizer(self.learningRate).minimize(self.loss)
     def createNetwork(self):
-        self.W_fc1 = weight_variable([self.sDim,300])
-        self.b_fc1 = bias_variable([300])
-        self.W_fc2 = weight_variable([300, 400])
-        self.b_fc2 = bias_variable([400])
-        self.W_fc3 = weight_variable([400, self.aDim])
-        self.b_fc3 = bias_variable([self.aDim])
+        W_fc1 = weight_variable([self.sDim,300])
+        b_fc1 = bias_variable([300])
+        W_fc2 = weight_variable([300, 400])
+        b_fc2 = bias_variable([400])
+        W_fc3 = weight_variable([400, self.aDim])
+        b_fc3 = bias_variable([self.aDim])
         inputs = tf.placeholder(tf.float32, [None,self.sDim])
         h_fc1 = tf.nn.relu(tf.matmul(inputs, W_fc1) + b_fc1)
         h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
         out = tf.matmul(h_fc2,W_fc3) + W_fc3 #see ddpg for details in init w between -0.003--0.003
+        self.sess.run(tf.global_variables_initializer())
         return inputs,out
     def train(self,inputs,actions,y):
         return self.sess.run(self.optimize,feed_dict={self.inputs:inputs,self.a:actions,self.y:y})
@@ -85,10 +86,13 @@ class Qnetwork:
         return self.sess.run(self.out,feed_dict={self.inputs:inputs})
     def targetPredict(self,inputs):
         return self.sess.run(self.out,feed_dict={self.targetInputs:inputs})
+    def targetUpdate(self):
+        return self.sess.run(self.updateTargetNetwork)
 
 def trainQnetwork(sess,env,network,maxBuffSize,MAX_EPISODES,MAX_EP_STEPS,RENDER_ENV,INITIAL_EPSILON,FINAL_EPSILON,OBSERVE_TIME,EXPLORE,SAVE_PER_STEP,BATCH_SIZE):
-    network.updateTargetNetwork()
+    network.targetUpdate()
     Buff = replayBuff(maxBuffSize)
+    #sess.run(tf.initialize_all_variables())
     saver = tf.train.Saver()
     checkpoint = tf.train.get_checkpoint_state("savedQnetwork")
     epsilon = INITIAL_EPSILON
@@ -123,11 +127,11 @@ def trainQnetwork(sess,env,network,maxBuffSize,MAX_EPISODES,MAX_EP_STEPS,RENDER_
                     else:
                         y_batch.append(r_batch[k]+GAMMA*target_q[k])
                 network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
-                network.updateTargetNetwork()
+                network.targetUpdate()
             s = s2
             t += 1
             if t % SAVE_PER_STEP == 0:
-            saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
+                saver.save(sess, 'savedQnetwork/' + GAME + '-dqn', global_step = t)
             if t:
                 break
 
