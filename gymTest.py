@@ -10,9 +10,9 @@ BATCH_SIZE = 64
 SAVE_PER_STEP = 10000
 
 OBSERVE = False
-OBSERVE_TIME = 100000
+OBSERVE_TIME = 10000
 FINAL_EPSILON = 0.0001 # final value of epsilon
-INITIAL_EPSILON = 0.001 # starting value of epsilon
+INITIAL_EPSILON = 0.01 # starting value of epsilon
 EXPLORE = 200000000
 
 # Max training steps
@@ -88,6 +88,8 @@ def train(sess,env,network):
             if d:
                 print("break")
                 break
+        print("run out of steps")
+    print ("run out of episodes")
 
 def main():
     env = gym.make(ENV_NAME)
