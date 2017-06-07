@@ -61,7 +61,7 @@ def train(sess,env,network):
             s2,r,d,info = env.step(aIndex)
             if d:
                 r = -1
-            Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,t, np.reshape(s2, (network.sDim,)))
+            Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,d, np.reshape(s2, (network.sDim,)))
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
                 target_q = network.targetPredict(s2_batch)
