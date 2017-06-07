@@ -3,16 +3,16 @@ import gym
 import numpy as np
 from Qlearn import *
 
-RENDER_ENV = True
+RENDER_ENV = False
 ENV_NAME = 'CartPole-v0'
 maxBuffSize = 10000
 BATCH_SIZE = 64
 SAVE_PER_STEP = 10000
 
 OBSERVE = False
-OBSERVE_TIME = 10000
+OBSERVE_TIME = 0
 FINAL_EPSILON = 0.0001 # final value of epsilon
-INITIAL_EPSILON = 0.01 # starting value of epsilon
+INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 
 # Max training steps
@@ -49,6 +49,7 @@ def train(sess,env,network):
                 aIndex = env.action_space.sample()
             else:
                 q = network.predict(np.reshape(s,(1,network.sDim)))[0]
+                #print (q)
                 aIndex = np.argmax(q)
 
             a = np.zeros([network.aDim])
@@ -59,7 +60,7 @@ def train(sess,env,network):
 
             s2,r,d,info = env.step(aIndex)
             if d:
-                r = -10
+                r = -1
             Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,t, np.reshape(s2, (network.sDim,)))
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
@@ -85,7 +86,8 @@ def train(sess,env,network):
             else:
                 state = "train"
             print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
-            #print(r)
+            #print(aIndex)
+            #print(a)
             if d:
                 print("break")
                 break
