@@ -38,7 +38,8 @@ def train(sess,env,network):
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
-    for i in xrange(MAX_EPISODES):
+    #for i in xrange(MAX_EPISODES):
+    while True:
         s = env.reset()
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
@@ -88,7 +89,7 @@ def train(sess,env,network):
             if d:
                 print("break")
                 break
-        print("run out of steps")
+        #print("run out of steps")
     print ("run out of episodes")
 
 def main():
