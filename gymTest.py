@@ -16,7 +16,7 @@ INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 
 # Max training steps
-MAX_EPISODES = 50000
+MAX_EPISODES = 500000000000
 # Max episode length
 MAX_EP_STEPS = 1000
 LEARNING_RATE = 0.001
