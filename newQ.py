@@ -106,7 +106,8 @@ if __name__ =="__main__":
             action_index = np.argmax(q)
             a_t[action_index] = 1
         s_t1,r_t,terminal,_ = env.step(action_index)
-        D.append((s_t, a_t, r_t, s_t1, terminal))
+        #D.append((s_t, a_t, r_t, s_t1, terminal))
+        Buff.add(s_t,a_t,r_t,terminal,s_t1)
         s_t = s_t1
         if terminal:
             s_t = env.reset()
@@ -114,16 +115,17 @@ if __name__ =="__main__":
         if len(D) > 10000:
             D.popleft()
         if t > 10:
-            minibatch = random.sample(D, 10)
-            s_j_batch = [d[0] for d in minibatch]
-            a_batch = [d[1] for d in minibatch]
-            r_batch = [d[2] for d in minibatch]
-            s_j1_batch = [d[3] for d in minibatch]
+            #minibatch = random.sample(D, 10)
+            #s_j_batch = [d[0] for d in minibatch]
+            #a_batch = [d[1] for d in minibatch]
+            #r_batch = [d[2] for d in minibatch]
+            #s_j1_batch = [d[3] for d in minibatch]
             y_batch = []
+            s_j_batch,a_batch,r_batch,t_batch,s_j1_batch = Buff.sample(10)
             readout_j1_batch = net.targetOut.eval(feed_dict = {net.targetInputs : s_j1_batch})
             print(readout_j1_batch)
-            for i in range(0, len(minibatch)):
-                terminal = minibatch[i][4]
+            for i in range(0, len(t_batch)):
+                terminal = t_batch[i]
                 # if terminal, only equals reward
                 if terminal:
                     y_batch.append(r_batch[i])
