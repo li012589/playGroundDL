@@ -31,11 +31,11 @@ class replayBuff:
             batch = random.sample(self.buffer, self.size)
         else:
             batch = random.sample(self.buffer,batchSize)
-        sBatch = np.array([_[0] for _ in batch])
-        aBatch = np.array([_[1] for _ in batch])
-        rBatch = np.array([_[2] for _ in batch])
-        tBatch = np.array([_[3] for _ in batch])
-        s2Batch = np.array([_[4] for _ in batch])
+            sBatch = np.array([_[0] for _ in batch])
+            aBatch = np.array([_[1] for _ in batch])
+            rBatch = np.array([_[2] for _ in batch])
+            tBatch = np.array([_[3] for _ in batch])
+            s2Batch = np.array([_[4] for _ in batch])
         return sBatch, aBatch, rBatch, tBatch, s2Batch
     def clear(self):
         self.buffer.clear()
