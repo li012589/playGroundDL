@@ -59,6 +59,7 @@ class Qnetwork:
         self.targetTrainableVar = tf.trainable_variables()[len(self.trainableVar):]
 
         self.updateTargetNetwork = [self.targetTrainableVar[i].assign(tf.multiply(self.trainableVar[i], self.tau)+tf.multiply(self.targetTrainableVar[i],1-self.tau)) for i in range(len(self.targetTrainableVar))]
+        self.initTargetNetwork = [self.targetTrainableVar[i].assign(self.trainableVar[i])]
 
         self.a = tf.placeholder(tf.float32, [None, self.aDim])
         self.y = tf.placeholder(tf.float32,[None,1])
@@ -92,6 +93,8 @@ class Qnetwork:
         return self.sess.run(self.targetOut,feed_dict={self.targetInputs:inputs})
     def targetUpdate(self):
         return self.sess.run(self.updateTargetNetwork)
+    def initTarget(self):
+        return self.sess.run(self.initTargetNetwork)
 
 if __name__ == "__main__":
     sess = tf.InteractiveSession()
