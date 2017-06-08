@@ -94,57 +94,72 @@ class Qnetwork:
         return self.sess.run(self.updateTargetNetwork)
 
 if __name__ == "__main__":
-    ENV_NAME = 'CartPole-v0'
-    Buff = replayBuff(10000)
-    env = gym.make(ENV_NAME)
-    s = env.reset()
-    x = np.random.rand(1000,2)
-    yt = np.asarray([t[0]**2+t[1]**2 for t in x])
     sess = tf.InteractiveSession()
-    network = Qnetwork(sess,4,2,0.01,1)
-    network.targetUpdate()
-    at = np.ones(1)
-    savedloss = []
-    #for t in range(len(x)):
-    for i in range(1,100):
-        q = network.predict(np.reshape(s,(1,network.sDim)))[0]
-        #print(q)
-        aIndex = np.argmax(q)
-        a = np.zeros([network.aDim])
-        a[aIndex] = 1
-        #print(a)
-        s2,r,d,_ = env.step(aIndex)
-        Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,d, np.reshape(s2, (network.sDim,)))
-        #pre = network.predict(np.reshape(x[t],(1,network.sDim)))#sess.run(out,feed_dict={inputs:np.reshape(x[t],(1,2))})
-        if Buff.size>10:
-            s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(10)
-            #print(s_batch)
-            #print(a_batch)
-            #print(r_batch)
-            #print(d_batch)
-            #print(s2_batch)
-            target_q = network.targetPredict(s2_batch)
-            print(target_q)
+    W_fc1 = weight_variable([4,10])
+    b_fc1 = bias_variable([10])
+    W_fc2 = weight_variable([10,2])
+    b_fc2 = bias_variable([2])
+    #W_fc3 = weight_variable([400, self.aDim])
+    #b_fc3 = bias_variable([self.aDim])
+    s = tf.placeholder(tf.float32, [None,4])
+    h_fc1 = tf.nn.relu(tf.matmul(s, W_fc1) + b_fc1)
+    #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+    #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+    readout = tf.matmul(h_fc1,W_fc2) + b_fc2 #see ddpg for details in init w between -0.003--0.003
+    a = tf.placeholder("float", [None, 2])
+    y = tf.placeholder("float", [None,1])
+    readout_action = tf.reduce_sum(tf.multiply(readout, a), reduction_indices=1)
+    cost = tf.reduce_mean(tf.square(y - readout_action))
+    train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
+    sess.run(tf.global_variables_initializer())
+
+    ENV_NAME = 'CartPole-v0'
+    env = gym.make(ENV_NAME)
+    s_t = env.reset()
+
+    D = deque()
+    t = 0
+    while True:
+        if t >= 1000:
+            pass
+            break
+        t += 1
+        readout_t = readout.eval(feed_dict={s : [s_t]})[0]
+        a_t = np.zeros([2])
+        action_index = 0
+        if random.random() <= 0.001:
+            print("----------Random Action----------")
+            action_index = random.randrange(2)
+            a_t[random.randrange(2)] = 1
+        else:
+            action_index = np.argmax(readout_t)
+            a_t[action_index] = 1
+        s_t1,r_t,terminal,_ = env.step(action_index)
+        D.append((s_t, a_t, r_t, s_t1, terminal))
+        if len(D) > 10000:
+            D.popleft()
+        if t > 10:
+            minibatch = random.sample(D, 10)
+            s_j_batch = [d[0] for d in minibatch]
+            a_batch = [d[1] for d in minibatch]
+            r_batch = [d[2] for d in minibatch]
+            s_j1_batch = [d[3] for d in minibatch]
             y_batch = []
-            for k in xrange(10):
-                if d_batch[k]:
-                    y_batch.append(r_batch[k])
+            readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
+            print(readout_j1_batch)
+            for i in range(0, len(minibatch)):
+                terminal = minibatch[i][4]
+                # if terminal, only equals reward
+                if terminal:
+                    y_batch.append(r_batch[i])
                 else:
-                    y_batch.append(r_batch[k]+0.99*np.max(target_q[k]))
-            #print(target_q)
-            #print(sess.run(network.predictionValue,feed_dict={network.inputs:s_batch,network.a:a_batch}))
-            network.train(s_batch,a_batch,np.reshape(y_batch,(10,1)))
-            network.targetUpdate()
-        #print pre
-        #print t
-        #pre = sess.run(out,feed_dict={inputs:np.reshape(x[t],(1,2))})
-        #los = sess.run(network.loss,feed_dict={network.inputs:np.reshape(x[t],(1,2)),network.a:np.reshape(at,(1,1)),network.y:np.reshape(yt[t],(1,1))})
-        #print(sess.run(network.loss,feed_dict={network.inputs:np.reshape(x[t],(1,2)),network.a:np.reshape(at,(1,1)),network.y:np.reshape(yt[t],(1,1))}))
-        #print los
-        #savedloss.append(los)
-        #print yt
-        #network.train(np.reshape(x[t],(1,2)),np.reshape(at,(1,1)),np.reshape(yt[t],(1,1)))
-    #print(sum(savedloss)/float(len(savedloss)))
-    #print(sess.run(W_fc1))
-    #print(sess.run(W_fc2))
-    #print(sess.run(W_fc3))
+                    y_batch.append(r_batch[i] + 0.99 * np.max(readout_j1_batch[i]))
+            #print(y_batch)
+            #print(len(s_j_batch))
+            #print(len(a_batch))
+            #print(len(r_batch))
+            #print(len(s_j1_batch))
+            train_step.run(feed_dict = {y : np.reshape(y_batch,(10,1)),a : np.reshape(a_batch,(10,2)),s : np.reshape(s_j_batch,(10,4))})
+        s_t = s_t1
+
+
