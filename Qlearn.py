@@ -3,6 +3,7 @@ import numpy as np
 from collections import deque
 import random
 import tflearn
+import gym
 
 USE_RFLEARN = False
 USE_TARGET_NETWORK = True
@@ -63,22 +64,25 @@ class Qnetwork:
         self.y = tf.placeholder(tf.float32,[None,1])
 
         self.predictionValue = tf.reduce_sum(tf.multiply(self.out, self.a), reduction_indices=1)
-        self.loss = tf.reduce_mean(tf.square(self.y - self.predictionValue))
+        self.tmp = tf.transpose(self.y) - self.predictionValue
+        #print(tuple(self.tmp.get_shape().as_list()))
+        self.tmp2 = tf.square(self.tmp)
+        self.loss = tf.reduce_mean(self.tmp2)
 
         self.optimize = tf.train.AdamOptimizer(self.learningRate).minimize(self.loss)
         self.sess.run(tf.global_variables_initializer())
     def createNetwork(self):
-        W_fc1 = weight_variable([self.sDim,300])
-        b_fc1 = bias_variable([300])
-        W_fc2 = weight_variable([300, 400])
-        b_fc2 = bias_variable([400])
-        W_fc3 = weight_variable([400, self.aDim])
-        b_fc3 = bias_variable([self.aDim])
+        W_fc1 = weight_variable([self.sDim,10])
+        b_fc1 = bias_variable([10])
+        W_fc2 = weight_variable([10, self.aDim])
+        b_fc2 = bias_variable([self.aDim])
+        #W_fc3 = weight_variable([400, self.aDim])
+        #b_fc3 = bias_variable([self.aDim])
         inputs = tf.placeholder(tf.float32, [None,self.sDim])
         h_fc1 = tf.nn.relu(tf.matmul(inputs, W_fc1) + b_fc1)
-        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
-        out = tf.matmul(h_fc2,W_fc3) + b_fc3 #see ddpg for details in init w between -0.003--0.003
+        out = tf.matmul(h_fc1,W_fc2) + b_fc2 #see ddpg for details in init w between -0.003--0.003
         return inputs,out
     def train(self,inputs,actions,y):
         return self.sess.run(self.optimize,feed_dict={self.inputs:inputs,self.a:actions,self.y:y})
@@ -90,4 +94,47 @@ class Qnetwork:
         return self.sess.run(self.updateTargetNetwork)
 
 if __name__ == "__main__":
-    pass
+    ENV_NAME = 'CartPole-v0'
+    Buff = replayBuff(10000)
+    #env = gym.make(ENV_NAME)
+    #s = env.reset()
+    x = np.random.rand(1000,2)
+    yt = np.asarray([t[0]**2+t[1]**2 for t in x])
+    sess = tf.InteractiveSession()
+    network = Qnetwork(sess,2,1,0.01,0.5)
+    network.targetUpdate()
+    at = np.ones(1)
+    savedloss = []
+    for t in range(len(x)):
+        s = x[t]
+        a = at
+        r = 1
+        d = False
+        s2 = yt[t]
+        Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,d, np.reshape(s2, (1,)))
+        #pre = network.predict(np.reshape(x[t],(1,network.sDim)))#sess.run(out,feed_dict={inputs:np.reshape(x[t],(1,2))})
+        if Buff.size>10:
+            s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(10)
+            #print(s_batch)
+            #print(a_batch)
+            #print(r_batch)
+            #print(d_batch)
+            #print(s2_batch)
+            target_q = network.targetPredict(s_batch)
+            #print(target_q)
+            #print(sess.run(network.predictionValue,feed_dict={network.inputs:s_batch,network.a:a_batch}))
+            network.train(s_batch,a_batch,s2_batch)
+            network.targetUpdate()
+        #print pre
+        #print t
+        #pre = sess.run(out,feed_dict={inputs:np.reshape(x[t],(1,2))})
+        los = sess.run(network.loss,feed_dict={network.inputs:np.reshape(x[t],(1,2)),network.a:np.reshape(at,(1,1)),network.y:np.reshape(yt[t],(1,1))})
+        #print(sess.run(network.loss,feed_dict={network.inputs:np.reshape(x[t],(1,2)),network.a:np.reshape(at,(1,1)),network.y:np.reshape(yt[t],(1,1))}))
+        print los
+        savedloss.append(los)
+        #print yt
+        #network.train(np.reshape(x[t],(1,2)),np.reshape(at,(1,1)),np.reshape(yt[t],(1,1)))
+    print(sum(savedloss)/float(len(savedloss)))
+    #print(sess.run(W_fc1))
+    #print(sess.run(W_fc2))
+    #print(sess.run(W_fc3))
