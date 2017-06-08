@@ -43,7 +43,8 @@ def train(sess,env,network):
         s = env.reset()
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
-                env.render()
+                #env.render()
+                pass
             if random.random() <= epsilon:
                 #print("exploring")
                 aIndex = env.action_space.sample()
@@ -61,17 +62,18 @@ def train(sess,env,network):
             s2,r,d,info = env.step(aIndex)
             if d:
                 r = -1
-            Buff.add(np.reshape(s, (network.sDim,)), np.reshape(a, (network.aDim,)), r,d, np.reshape(s2, (network.sDim,)))
+            Buff.add(s,a,r,d,s2)
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
                 target_q = network.targetPredict(s2_batch)
+                print(target_q)
                 y_batch = []
                 for k in xrange(BATCH_SIZE):
                     if d_batch[k]:
                         y_batch.append(r_batch[k])
                     else:
                         y_batch.append(r_batch[k]+GAMMA*np.max(target_q[k]))
-                network.train(s_batch,a_batch,np.reshape(y_batch,(BATCH_SIZE,1)))
+                network.train(np.reshape(s_batch,(BATCH_SIZE,network.sDim)),np.reshape(a_batch,(BATCH_SIZE,network.aDim)),np.reshape(y_batch,(BATCH_SIZE,1)))
                 network.targetUpdate()
             s = s2
             t += 1
@@ -85,7 +87,7 @@ def train(sess,env,network):
                 state = "explore"
             else:
                 state = "train"
-            print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
+            #print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
             #print(aIndex)
             #print(a)
             if d:
