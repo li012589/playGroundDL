@@ -72,17 +72,17 @@ class Qnetwork:
         self.optimize = tf.train.AdamOptimizer(self.learningRate).minimize(self.loss)
         self.sess.run(tf.global_variables_initializer())
     def createNetwork(self):
-        W_fc1 = weight_variable([self.sDim,10])
-        b_fc1 = bias_variable([10])
-        W_fc2 = weight_variable([10, self.aDim])
-        b_fc2 = bias_variable([self.aDim])
-        #W_fc3 = weight_variable([400, self.aDim])
-        #b_fc3 = bias_variable([self.aDim])
+        W_fc1 = weight_variable([self.sDim,50])
+        b_fc1 = bias_variable([50])
+        W_fc2 = weight_variable([50, 40])
+        b_fc2 = bias_variable([40])
+        W_fc3 = weight_variable([40, self.aDim])
+        b_fc3 = bias_variable([self.aDim])
         inputs = tf.placeholder(tf.float32, [None,self.sDim])
         h_fc1 = tf.nn.relu(tf.matmul(inputs, W_fc1) + b_fc1)
-        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
-        out = tf.matmul(h_fc1,W_fc2) + b_fc2 #see ddpg for details in init w between -0.003--0.003
+        out = tf.matmul(h_fc2,W_fc3) + b_fc3 #see ddpg for details in init w between -0.003--0.003
         return inputs,out
     def train(self,inputs,actions,y):
         return self.sess.run(self.optimize,feed_dict={self.inputs:inputs,self.a:actions,self.y:y})
