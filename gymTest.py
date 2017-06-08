@@ -26,7 +26,7 @@ GAMMA = 0.99
 TAU = 0.001
 
 def train(sess,env,network):
-    network.targetUpdate()
+    network.initTarget()
     Buff = replayBuff(maxBuffSize)
     #sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
@@ -43,8 +43,7 @@ def train(sess,env,network):
         s = env.reset()
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
-                #env.render()
-                pass
+                env.render()
             if random.random() <= epsilon:
                 #print("exploring")
                 aIndex = env.action_space.sample()
