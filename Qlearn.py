@@ -120,9 +120,10 @@ if __name__ == "__main__":
     D = deque()
     t = 0
     while True:
+        env.render()
         if t >= 1000:
             pass
-            break
+            #break
         t += 1
         readout_t = readout.eval(feed_dict={s : [s_t]})[0]
         a_t = np.zeros([2])
@@ -136,6 +137,10 @@ if __name__ == "__main__":
             a_t[action_index] = 1
         s_t1,r_t,terminal,_ = env.step(action_index)
         D.append((s_t, a_t, r_t, s_t1, terminal))
+        s_t = s_t1
+        if terminal:
+            s_t = env.reset()
+            print("break")
         if len(D) > 10000:
             D.popleft()
         if t > 10:
@@ -160,6 +165,6 @@ if __name__ == "__main__":
             #print(len(r_batch))
             #print(len(s_j1_batch))
             train_step.run(feed_dict = {y : np.reshape(y_batch,(10,1)),a : np.reshape(a_batch,(10,2)),s : np.reshape(s_j_batch,(10,4))})
-        s_t = s_t1
+
 
 
