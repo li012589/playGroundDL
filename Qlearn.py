@@ -95,6 +95,16 @@ class Qnetwork:
 
 if __name__ == "__main__":
    pass
-   
+   ENV_NAME = 'CartPole-v0'
+   Buff = replayBuff(10000)
+   env = gym.make(ENV_NAME)
+   s = env.reset()
+   sess = tf.InteractiveSession()
+   network = Qnetwork(sess,4,2,0.01,0.5)
+   network.initTarget()
+
+   print(sess.run(network.trainableVar))
+   print(sess.run(network.targetTrainableVar))
+
 
 
