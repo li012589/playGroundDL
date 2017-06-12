@@ -80,7 +80,7 @@ def train(sess,env,network):
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
                 target_q = network.targetPredict(s2_batch)
-                print(target_q)
+                #print(target_q)
                 y_batch = []
                 for k in xrange(BATCH_SIZE):
                     if d_batch[k]:
@@ -101,7 +101,7 @@ def train(sess,env,network):
                 state = "explore"
             else:
                 state = "train"
-            #print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
+            print("TIMESTEP", t, "/ STATE", state, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
             #print(aIndex)
             #print(a)
             if d:
