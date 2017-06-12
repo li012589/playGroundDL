@@ -26,10 +26,10 @@ GAMMA = 0.99
 TAU = 0.001
 
 def train(sess,env,network):
-    #rewardSummary = tf.Variable(0.0)
-    #maxQsummary = tf.Variable(0.0)
-    #tf.summary.scalar("Reward", rewardSummary)
-    #tf.summary.scalar("Maxium Q", maxQSummary)
+    rewardSummary = tf.Variable(0.0)
+    maxQSummary = tf.Variable(0.0)
+    tf.summary.scalar("Reward", rewardSummary)
+    tf.summary.scalar("Maxium Q", maxQSummary)
     writer = tf.summary.FileWriter(SUMMARY_DIR, sess.graph)
 
     sess.run(tf.global_variables_initializer())
@@ -45,10 +45,12 @@ def train(sess,env,network):
     else:
         print("Could not find old network weights")
     #for i in xrange(MAX_EPISODES):
+    i = 0
     while True:
         s = env.reset()
         reward = 0
         maxQ = 0
+        i += 1
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
                 env.render()
@@ -71,6 +73,9 @@ def train(sess,env,network):
             reward += r
             if d:
                 r = -1
+                summary = sess.run(tf.summary.merge_all(),feed_dict={rewardSummary:reward, maxQSummary:maxQ})
+                writer.add_summary(summary, i)
+                writer.flush()
             Buff.add(s,a,r,d,s2)
             if t > OBSERVE_TIME and Buff.size>BATCH_SIZE:
                 s_batch, a_batch, r_batch, d_batch, s2_batch = Buff.sample(BATCH_SIZE)
