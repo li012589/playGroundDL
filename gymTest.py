@@ -14,7 +14,7 @@ OBSERVE_TIME = 0
 FINAL_EPSILON = 0.0001 # final value of epsilon
 INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
-
+SUMMARY_DIR = './summary'
 # Max training steps
 MAX_EPISODES = 500000000000
 # Max episode length
@@ -26,9 +26,15 @@ GAMMA = 0.99
 TAU = 0.001
 
 def train(sess,env,network):
+    #rewardSummary = tf.Variable(0.0)
+    #maxQsummary = tf.Variable(0.0)
+    #tf.summary.scalar("Reward", rewardSummary)
+    #tf.summary.scalar("Maxium Q", maxQSummary)
+    writer = tf.summary.FileWriter(SUMMARY_DIR, sess.graph)
+
+    sess.run(tf.global_variables_initializer())
     network.initTarget()
     Buff = replayBuff(maxBuffSize)
-    #sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     checkpoint = tf.train.get_checkpoint_state("savedQnetwork")
     epsilon = INITIAL_EPSILON
@@ -41,6 +47,8 @@ def train(sess,env,network):
     #for i in xrange(MAX_EPISODES):
     while True:
         s = env.reset()
+        reward = 0
+        maxQ = 0
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
                 env.render()
@@ -50,6 +58,7 @@ def train(sess,env,network):
             else:
                 q = network.predict(np.reshape(s,(1,network.sDim)))[0]
                 #print (q)
+                maxQ = max(maxQ,np.max(q))
                 aIndex = np.argmax(q)
 
             a = np.zeros([network.aDim])
@@ -59,6 +68,7 @@ def train(sess,env,network):
                 epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
             s2,r,d,info = env.step(aIndex)
+            reward += r
             if d:
                 r = -1
             Buff.add(s,a,r,d,s2)

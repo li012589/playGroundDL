@@ -68,7 +68,7 @@ class Qnetwork:
         self.loss = tf.reduce_mean(self.tmp2)
 
         self.optimize = tf.train.AdamOptimizer(self.learningRate).minimize(self.loss)
-        self.sess.run(tf.global_variables_initializer())
+        #self.sess.run(tf.global_variables_initializer())
     def createNetwork(self):
         W_fc1 = weight_variable([self.sDim,50])
         b_fc1 = bias_variable([50])
