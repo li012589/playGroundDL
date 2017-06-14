@@ -72,7 +72,7 @@ def train(sess,env,network):
             s2,r,d,info = env.step(aIndex)
             reward += r
             if d:
-                r = -1
+                #r = -1
                 summary = sess.run(tf.summary.merge_all(),feed_dict={rewardSummary:reward, maxQSummary:maxQ})
                 writer.add_summary(summary, i)
                 writer.flush()
@@ -114,7 +114,7 @@ def main():
     env = gym.make(ENV_NAME)
     sess = tf.InteractiveSession()
     sDim = env.observation_space.shape[0]
-    aDim = 2#env.action_space.shape[0]
+    aDim = env.action_space.n
     network = Qnetwork(sess,sDim,aDim,LEARNING_RATE,TAU)
     train(sess,env,network)
 
