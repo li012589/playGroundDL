@@ -2,9 +2,11 @@ import tensorflow as tf
 import gym
 import numpy as np
 from Qlearn import *
+from gym import wrappers
 
 RENDER_ENV = False
 ENV_NAME = 'CartPole-v0'
+SAVE_PATH = './cartpole_q'
 maxBuffSize = 10000
 BATCH_SIZE = 64
 SAVE_PER_STEP = 10000
@@ -16,7 +18,7 @@ INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 SUMMARY_DIR = './summary'
 # Max training steps
-MAX_EPISODES = 500000000000
+MAX_EPISODES = 50000
 # Max episode length
 MAX_EP_STEPS = 1000
 LEARNING_RATE = 0.001
@@ -44,13 +46,13 @@ def train(sess,env,network):
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
-    #for i in xrange(MAX_EPISODES):
-    i = 0
-    while True:
+    for i in xrange(MAX_EPISODES):
+    #i = 0
+    #while True:
         s = env.reset()
         reward = 0
         maxQ = 0
-        i += 1
+        #i += 1
         for j in xrange(MAX_EP_STEPS):
             if RENDER_ENV:
                 env.render()
@@ -112,6 +114,7 @@ def train(sess,env,network):
 
 def main():
     env = gym.make(ENV_NAME)
+    env = wrappers.Monitor(env, SAVE_PATH)
     sess = tf.InteractiveSession()
     sDim = env.observation_space.shape[0]
     aDim = env.action_space.n
