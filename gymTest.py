@@ -3,31 +3,36 @@ import gym
 import numpy as np
 from Qlearn import *
 from gym import wrappers
+from presentNN import genPic,save2Pic
 
 RENDER_ENV = False
 ENV_NAME = 'CartPole-v0'
 SAVE_PATH = './cartpole_q'
 maxBuffSize = 10000
 BATCH_SIZE = 64
-SAVE_PER_STEP = 10000
+SAVE_PER_STEP = 1000
 
 OBSERVE = False
+NN_PRESENT = True
 OBSERVE_TIME = 0
 FINAL_EPSILON = 0.0001 # final value of epsilon
 INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 SUMMARY_DIR = './summary'
 # Max training steps
-MAX_EPISODES = 50000
+MAX_EPISODES = 20
 # Max episode length
-MAX_EP_STEPS = 1000
+MAX_EP_STEPS = 10000
 LEARNING_RATE = 0.001
 # Discount factor
 GAMMA = 0.99
 # Soft target update param
 TAU = 0.001
+STEP = [0.1,0.1]
+MAX_RANGE = 10
+BASE_DIR_PIC = './picDir/'
 
-def train(sess,env,network):
+def train(sess,env,network,high,low):
     rewardSummary = tf.Variable(0.0)
     maxQSummary = tf.Variable(0.0)
     tf.summary.scalar("Reward", rewardSummary)
@@ -94,6 +99,14 @@ def train(sess,env,network):
             s = s2
             t += 1
             if t % SAVE_PER_STEP == 0:
+                if NN_PRESENT:
+                    ranges = []
+                    for i in range(len(high)):
+                        if high[i] >= MAX_RANGE:
+                            high[i] = MAX_RANGE
+                            low[i] = -MAX_RANGE
+                        ranges.append([low[i],high[i]])
+                    genPic(network,ranges,STEP,[1,3],MAX_RANGE,BASE_DIR_PIC,t)
                 saver.save(sess, 'savedQnetwork/' + ENV_NAME + '-dqn', global_step = t)
             # print info
             state = ""
@@ -111,6 +124,10 @@ def train(sess,env,network):
                 break
         #print("run out of steps")
     print ("run out of episodes")
+    env.close()
+    print(t)
+    #if NN_PRESENT:
+        #save2Pic(BASE_DIR_PIC,t,SAVE_PER_STEP)
 
 def main():
     env = gym.make(ENV_NAME)
@@ -118,8 +135,10 @@ def main():
     sess = tf.InteractiveSession()
     sDim = env.observation_space.shape[0]
     aDim = env.action_space.n
+    high = env.observation_space.high
+    low = env.observation_space.low
     network = Qnetwork(sess,sDim,aDim,LEARNING_RATE,TAU)
-    train(sess,env,network)
+    train(sess,env,network,high,low)
 
 if __name__ == "__main__":
     main()
