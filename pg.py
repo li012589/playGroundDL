@@ -14,6 +14,7 @@ import gym
 from gym import wrappers
 
 import tensorflow as tf
+import pickle
 
 reset_graph()
 
@@ -69,10 +70,13 @@ env = wrappers.Monitor(env, './cartpole')
 
 n_games_per_update = 10
 n_max_steps = 1000
-n_iterations = 300
-save_iterations = 10
+n_iterations = 30
+save_iterations = 1
+NN_PRESENT = True
 discount_rate = 0.95
 record = []
+basePath = './picDirPG/'
+MAX_RANGE = 10
 with tf.Session() as sess:
     init.run()
     for iteration in range(n_iterations):
@@ -105,7 +109,43 @@ with tf.Session() as sess:
             feed_dict[gradient_placeholder] = mean_gradients
         sess.run(training_op, feed_dict=feed_dict)
         if iteration % save_iterations == 0:
-            pass
+            if NN_PRESENT:
+                high = env.observation_space.high
+                low = env.observation_space.low
+                ranges = []
+                for i in range(len(high)):
+                    if high[i] >= MAX_RANGE:
+                        high[i] = MAX_RANGE
+                        low[i] = -MAX_RANGE
+                    ranges.append([low[i],high[i]])
+                    #genPic(network,ranges,STEP,[1,3],MAX_RANGE,BASE_DIR_PIC,t)
+                x = 0
+                ranges = [ranges[t] for t in [1,2,3]]
+                steps = [0.1,0.1,0.1]
+                batch = []
+                for xDot in np.arange(ranges[0][0],ranges[0][1],steps[0]):
+                    for theta in np.arange(ranges[1][0],ranges[1][1],steps[1]):
+                        for thetaDot in np.arange(ranges[2][0],ranges[2][1],steps[2]):
+                            #x_dot.append(xDot)
+                            #theta_dot.append(thetaDot)
+                            batch.append([x,xDot,theta,thetaDot])
+                batch = np.reshape(batch,[len(batch),n_inputs])
+                actions = sess.run(action, feed_dict={X: batch})
+                x_dot = [t[1] for t in batch]
+                theta_dot = [t[3] for t in batch]
+                theta = [t[2] for t in batch]
+                onesX = [ (x_dot[i]) for i in range(len(actions)) if actions[i] == 1 ]
+                onesY = [ (theta_dot[i]) for i in range(len(actions)) if actions[i] == 1 ]
+                onesZ = [ (theta[i]) for i in range(len(actions)) if actions[i] == 1 ]
+                ones = [onesX,onesZ,onesZ]
+                zeroX = [ (x_dot[i]) for i in range(len(actions)) if actions[i] == 0 ]
+                zeroY = [ (theta_dot[i]) for i in range(len(actions)) if actions[i] == 0 ]
+                zeroZ = [ (theta[i]) for i in range(len(actions)) if actions[i] == 0 ]
+                zeros = [zeroX,zeroY,zeroZ]
+                with open(basePath + "NNZeroresult" + str(iteration), "wb") as fp:
+                    pickle.dump(zeros, fp)
+                with open(basePath + "NNOneresult" + str(iteration), "wb") as fp:
+                    pickle.dump(ones, fp)
             #saver.save(sess, "./my_policy_net_pg.ckpt")
 env.reset()
 #print record
