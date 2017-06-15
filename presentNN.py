@@ -4,14 +4,17 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import pickle
 
-ENV_NAME = 'CartPole-v0'
-LEARNING_RATE = 0.001
-TAU = 0.001
-STEP = [0.1,0.1,0.01,0.1]
-MAX_RANGE = 10
+def showPic(x,y,z1,z2):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_trisurf(x, y, z1,color = 'r')
+    ax.plot_trisurf(x, y, z2,color = 'b')
+    #plt.show()
+    return fig
 
-def genPic(network,ranges,steps,choice,maxRange):
+def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
     x_dot = []
     theta_dot = []
     one_r = []
@@ -19,18 +22,38 @@ def genPic(network,ranges,steps,choice,maxRange):
     x = 0
     theta = 0
     ranges = [ranges[t] for t in choice]
-    for xDot in np.arange(ranges[0][0],ranges[0][1],STEP[0]):
-        for thetaDot in np.arange(ranges[1][0],ranges[1][1],STEP[1]):
+    for xDot in np.arange(ranges[0][0],ranges[0][1],steps[0]):
+        for thetaDot in np.arange(ranges[1][0],ranges[1][1],steps[1]):
             x_dot.append(xDot)
             theta_dot.append(thetaDot)
             q = network.predict(np.reshape([x,xDot,theta,thetaDot],(1,network.sDim)))[0]
             zero_r.append(q[0])
             one_r.append(q[1])
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_trisurf(x_dot, theta_dot, one_r,color = 'r')
-    ax.plot_trisurf(x_dot, theta_dot, zero_r,color = 'b')
-    plt.show()
+    if basePath == -1:
+        showPic(x_dot,theta_dot,zero_r,one_r)
+    else:
+        with open(basePath + "NNZeroresult" + str(i), "wb") as fp:
+            pickle.dump(zero_r, fp)
+        with open(basePath + "NNOneresult" + str(i), "wb") as fp:
+            pickle.dump(one_r, fp)
+        with open(basePath + "NNXresult" + str(i), "wb") as fp:
+            pickle.dump(x_dot, fp)
+        with open(basePath + "NNYresult" + str(i), "wb") as fp:
+            pickle.dump(theta_dot, fp)
+
+def save2Pic(basePath,ranges):
+    for i in range(ranges):
+        with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
+            zero_r = pickle.load(fp)
+        with open(basePath + "NNOneresult" + str(i), "rb") as fp:
+            one_r = pickle.load(fp)
+        with open(basePath + "NNXresult" + str(i), "rb") as fp:
+            x_dot = pickle.load(fp)
+        with open(basePath + "NNYresult" + str(i), "rb") as fp:
+            theta_dot = pickle.load(fp)
+        fig = showPic(x_dot,theta_dot,zero_r,one_r)
+        fig.savefig(basePath+str(i)+'.png')
+        plt.close(fig)
 
 def main():
     env = gym.make(ENV_NAME)
@@ -55,6 +78,13 @@ def main():
     else:
         print("Could not find old network weights")
     steps = [STEP[t] for t in [1,3]]
-    genPic(network,ranges,steps,[1,3],MAX_RANGE)
+    genPic(network,ranges,steps,[1,3],MAX_RANGE,BASE_DIR,0)
+    save2Pic(BASE_DIR,1)
 if __name__ == "__main__":
+    ENV_NAME = 'CartPole-v0'
+    LEARNING_RATE = 0.001
+    TAU = 0.001
+    STEP = [0.1,0.1,0.01,0.1]
+    MAX_RANGE = 10
+    BASE_DIR = './picDir/'
     main()
