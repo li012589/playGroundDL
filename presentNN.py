@@ -42,7 +42,7 @@ def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
             pickle.dump(theta_dot, fp)
 
 def save2Pic(basePath,ranges,step):
-    for i in range(10,ranges,step):
+    for i in range(step,ranges,step):
         with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
             zero_r = pickle.load(fp)
         with open(basePath + "NNOneresult" + str(i), "rb") as fp:
