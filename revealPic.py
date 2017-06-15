@@ -5,4 +5,4 @@ from presentNN import genPic,save2Pic
 
 BASE_DIR_PIC = './picDir/'
 
-save2Pic(BASE_DIR_PIC,190,10)
+save2Pic(BASE_DIR_PIC,730000,1000)

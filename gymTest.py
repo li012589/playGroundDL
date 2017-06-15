@@ -20,9 +20,9 @@ INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 SUMMARY_DIR = './summary'
 # Max training steps
-MAX_EPISODES = 20
+MAX_EPISODES = 10000
 # Max episode length
-MAX_EP_STEPS = 10000
+MAX_EP_STEPS = 1000
 LEARNING_RATE = 0.001
 # Discount factor
 GAMMA = 0.99
