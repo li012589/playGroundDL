@@ -70,7 +70,7 @@ env = wrappers.Monitor(env, './cartpole')
 
 n_games_per_update = 10
 n_max_steps = 1000
-n_iterations = 30
+n_iterations = 300
 save_iterations = 1
 NN_PRESENT = True
 discount_rate = 0.95
