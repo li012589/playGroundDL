@@ -15,10 +15,10 @@ def showPic(x,y,z1,z2):
     return fig
 
 def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
-    x_dot = []
-    theta_dot = []
-    one_r = []
-    zero_r = []
+    #x_dot = []
+    #theta_dot = []
+    #one_r = []
+    #zero_r = []
     x = 0
     theta = 0
     ranges = [ranges[t] for t in choice]
