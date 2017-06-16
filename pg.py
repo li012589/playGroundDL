@@ -137,7 +137,7 @@ with tf.Session() as sess:
                 onesX = [ (x_dot[i]) for i in range(len(actions)) if actions[i] == 1 ]
                 onesY = [ (theta_dot[i]) for i in range(len(actions)) if actions[i] == 1 ]
                 onesZ = [ (theta[i]) for i in range(len(actions)) if actions[i] == 1 ]
-                ones = [onesX,onesZ,onesZ]
+                ones = [onesX,onesY,onesZ]
                 zeroX = [ (x_dot[i]) for i in range(len(actions)) if actions[i] == 0 ]
                 zeroY = [ (theta_dot[i]) for i in range(len(actions)) if actions[i] == 0 ]
                 zeroZ = [ (theta[i]) for i in range(len(actions)) if actions[i] == 0 ]
