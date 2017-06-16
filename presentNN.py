@@ -22,13 +22,23 @@ def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
     x = 0
     theta = 0
     ranges = [ranges[t] for t in choice]
+    batch = []
     for xDot in np.arange(ranges[0][0],ranges[0][1],steps[0]):
         for thetaDot in np.arange(ranges[1][0],ranges[1][1],steps[1]):
-            x_dot.append(xDot)
-            theta_dot.append(thetaDot)
-            q = network.predict(np.reshape([x,xDot,theta,thetaDot],(1,network.sDim)))[0]
-            zero_r.append(q[0])
-            one_r.append(q[1])
+            #x_dot.append(xDot)
+            #theta_dot.append(thetaDot)
+            batch.append([x,xDot,theta,thetaDot])
+            #q = network.predict(np.reshape([x,xDot,theta,thetaDot],(1,network.sDim)))[0]
+            #zero_r.append(q[0])
+            #one_r.append(q[1])
+    #print len(batch)
+    batch = np.reshape(batch,[len(batch),network.sDim])
+    q = network.predict(batch)
+    #print q.shape
+    x_dot = [t[1] for t in batch]
+    theta_dot = [t[3] for t in batch]
+    one_r = [t[0] for t in q]
+    zero_r = [t[1] for t in q]
     if basePath == -1:
         showPic(x_dot,theta_dot,zero_r,one_r)
     else:
@@ -42,7 +52,9 @@ def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
             pickle.dump(theta_dot, fp)
 
 def save2Pic(basePath,ranges,step):
-    for i in range(step,ranges,step):
+    for i in range(0,ranges,step):
+        if i == 0:
+            continue
         with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
             zero_r = pickle.load(fp)
         with open(basePath + "NNOneresult" + str(i), "rb") as fp:
@@ -79,7 +91,7 @@ def main():
         print("Could not find old network weights")
     steps = [STEP[t] for t in [1,3]]
     genPic(network,ranges,steps,[1,3],MAX_RANGE,BASE_DIR,0)
-    save2Pic(BASE_DIR,1)
+    save2Pic(BASE_DIR,1,1)
 if __name__ == "__main__":
     ENV_NAME = 'CartPole-v0'
     LEARNING_RATE = 0.001
