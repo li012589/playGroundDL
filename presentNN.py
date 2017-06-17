@@ -15,6 +15,8 @@ def showPic(x,y,z1,z2):
     ax.set_xbound(-10,10)
     ax.set_ylim(-10, 10)
     ax.set_ybound(-10,10)
+    z1[ z1 < 0 or z1 > 200 ] == np.nan
+    z2[ z2 < 0 or z1 > 200 ] == np.nan
     ax.plot_trisurf(x, y, z1,color = 'r')
     ax.plot_trisurf(x, y, z2,color = 'b')
     ax.set_xlabel('x_dot')
