@@ -15,12 +15,13 @@ def showPic(x,y,z1,z2):
     ax.set_xbound(-10,10)
     ax.set_ylim(-10, 10)
     ax.set_ybound(-10,10)
-    z1[ z1 < 0 ] == np.nan
-    z1[ z1 > 200 ] == np.nan
-    z2[ z2 < 0 ] == np.nan
-    z2[ z2 > 200 ] == np.nan
-    ax.plot_trisurf(x, y, z1,color = 'r')
-    ax.plot_trisurf(x, y, z2,color = 'b')
+    z1[ z1 < 0 ] = np.nan
+    z1[ z1 > 200 ] = np.nan
+    z2[ z2 < 0 ] = np.nan
+    z2[ z2 > 200 ] = np.nan
+    #print z1
+    ax.plot_trisurf(x.tolist(), y.tolist(), z1.tolist(),color = 'r')
+    ax.plot_trisurf(x.tolist(), y.tolist(), z2.tolist(),color = 'b')
     ax.set_xlabel('x_dot')
     ax.set_ylabel('theta_dot')
     ax.set_zlabel('Q')
@@ -71,13 +72,13 @@ def save2Pic(basePath,low,high,step):
         if i == 0:
             continue
         with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
-            zero_r = pickle.load(fp)
+            zero_r = np.array(pickle.load(fp))
         with open(basePath + "NNOneresult" + str(i), "rb") as fp:
-            one_r = pickle.load(fp)
+            one_r = np.array(pickle.load(fp))
         with open(basePath + "NNXresult" + str(i), "rb") as fp:
-            x_dot = pickle.load(fp)
+            x_dot = np.array(pickle.load(fp))
         with open(basePath + "NNYresult" + str(i), "rb") as fp:
-            theta_dot = pickle.load(fp)
+            theta_dot = np.array(pickle.load(fp))
         print("processing #" + str(i))
         fig = showPic(x_dot,theta_dot,zero_r,one_r)
         fig.savefig(basePath+str(i)+'.png')
