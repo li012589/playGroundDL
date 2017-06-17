@@ -4,5 +4,7 @@ import pickle
 from presentNN import genPic,save2Pic
 
 BASE_DIR_PIC = './picDir/'
+MAX = 730000
+STEP = 1000
 
-save2Pic(BASE_DIR_PIC,67000,1000)
+save2Pic(BASE_DIR_PIC,MAX,STEP)

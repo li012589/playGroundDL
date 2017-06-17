@@ -13,7 +13,7 @@ def showPic(x,y,z1,z2):
     ax.plot_trisurf(x, y, z2,color = 'b')
     ax.set_xlabel('x_dot')
     ax.set_ylabel('theta_dot')
-    ax.set_zlabel('theta')
+    ax.set_zlabel('Q')
     ax.text2D(0.05, 0.95, "red: right; blue: left", transform=ax.transAxes)
     #plt.show()
     return fig
