@@ -9,6 +9,9 @@ import pickle
 def showPic(x,y,z1,z2):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
+    ax.set_zlim(0, 200)
+    ax.set_xlim(-10, 10)
+    ax.set_ylim(-10, 10)
     ax.plot_trisurf(x, y, z1,color = 'r')
     ax.plot_trisurf(x, y, z2,color = 'b')
     ax.set_xlabel('x_dot')
