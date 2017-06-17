@@ -63,6 +63,7 @@ def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
 
 def save2Pic(basePath,low,high,step):
     for i in range(low,high,step):
+        print("loading #" + str(i))
         if i == 0:
             continue
         with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
@@ -73,9 +74,11 @@ def save2Pic(basePath,low,high,step):
             x_dot = pickle.load(fp)
         with open(basePath + "NNYresult" + str(i), "rb") as fp:
             theta_dot = pickle.load(fp)
+        print("processing #" + str(i))
         fig = showPic(x_dot,theta_dot,zero_r,one_r)
         fig.savefig(basePath+str(i)+'.png')
         plt.close(fig)
+        print("Done saved")
 
 def main():
     env = gym.make(ENV_NAME)
