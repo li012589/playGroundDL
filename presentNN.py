@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
+import math
 
 def showPic(x,y,z1,z2):
     fig = plt.figure()
@@ -29,17 +30,19 @@ def showPic(x,y,z1,z2):
     #plt.show()
     return fig
 
-def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
+def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1,theta=0):
     #x_dot = []
     #theta_dot = []
     #one_r = []
     #zero_r = []
     x = 0
-    theta = 0
+    #thetaOrigin = [i for i in range(0,12)]
+    #theta = [i*2*math.pi/360 for i in thetaOrigin]
     ranges = [ranges[t] for t in choice]
     batch = []
     for xDot in np.arange(ranges[0][0],ranges[0][1],steps[0]):
         for thetaDot in np.arange(ranges[1][0],ranges[1][1],steps[1]):
+            #for thetat in theta:
             #x_dot.append(xDot)
             #theta_dot.append(thetaDot)
             batch.append([x,xDot,theta,thetaDot])
@@ -57,31 +60,32 @@ def genPic(network,ranges,steps,choice,maxRange,basePath=-1,i=-1):
     if basePath == -1:
         showPic(x_dot,theta_dot,zero_r,one_r)
     else:
-        with open(basePath + "NNZeroresult" + str(i), "wb") as fp:
+        with open(basePath + "NNZeroresult" + str(i)+"theta="+str(theta), "wb") as fp:
             pickle.dump(zero_r, fp)
-        with open(basePath + "NNOneresult" + str(i), "wb") as fp:
+        with open(basePath + "NNOneresult" + str(i)+"theta="+str(theta), "wb") as fp:
             pickle.dump(one_r, fp)
-        with open(basePath + "NNXresult" + str(i), "wb") as fp:
+        with open(basePath + "NNXresult" + str(i)+"theta="+str(theta), "wb") as fp:
             pickle.dump(x_dot, fp)
-        with open(basePath + "NNYresult" + str(i), "wb") as fp:
+        with open(basePath + "NNYresult" + str(i)+"theta="+str(theta), "wb") as fp:
             pickle.dump(theta_dot, fp)
 
-def save2Pic(basePath,low,high,step):
+def save2Pic(basePath,low,high,step,theta=0):
     for i in range(low,high,step):
         print("loading #" + str(i))
         if i == 0:
-            continue
-        with open(basePath + "NNZeroresult" + str(i), "rb") as fp:
+            pass
+            #continue
+        with open(basePath + "NNZeroresult" + str(i)+"theta="+str(theta), "rb") as fp:
             zero_r = np.array(pickle.load(fp))
-        with open(basePath + "NNOneresult" + str(i), "rb") as fp:
+        with open(basePath + "NNOneresult" + str(i)+"theta="+str(theta), "rb") as fp:
             one_r = np.array(pickle.load(fp))
-        with open(basePath + "NNXresult" + str(i), "rb") as fp:
+        with open(basePath + "NNXresult" + str(i)+"theta="+str(theta), "rb") as fp:
             x_dot = np.array(pickle.load(fp))
-        with open(basePath + "NNYresult" + str(i), "rb") as fp:
+        with open(basePath + "NNYresult" + str(i)+"theta="+str(theta), "rb") as fp:
             theta_dot = np.array(pickle.load(fp))
         print("processing #" + str(i))
         fig = showPic(x_dot,theta_dot,zero_r,one_r)
-        fig.savefig(basePath+str(i)+'.png')
+        fig.savefig(basePath+str(i)+"theta="+str(theta)+'.png')
         plt.close(fig)
         print("Done saved")
 
@@ -108,8 +112,8 @@ def main():
     else:
         print("Could not find old network weights")
     steps = [STEP[t] for t in [1,3]]
-    genPic(network,ranges,steps,[1,3],MAX_RANGE,BASE_DIR,0)
-    save2Pic(BASE_DIR,1,1)
+    genPic(network,ranges,steps,[1,3],MAX_RANGE,BASE_DIR,0,theta = 10*math.pi*2/360)
+    save2Pic(BASE_DIR,0,1,1,10*math.pi*2/360)
 if __name__ == "__main__":
     ENV_NAME = 'CartPole-v0'
     LEARNING_RATE = 0.001
