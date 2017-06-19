@@ -74,7 +74,7 @@ def save2Pic(basePath,low,high,step,theta=0):
         print("loading #" + str(i))
         if i == 0:
             pass
-            #continue
+            continue
         with open(basePath + "NNZeroresult" + str(i)+"theta="+str(theta), "rb") as fp:
             zero_r = np.array(pickle.load(fp))
         with open(basePath + "NNOneresult" + str(i)+"theta="+str(theta), "rb") as fp:
