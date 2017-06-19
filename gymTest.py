@@ -21,7 +21,6 @@ INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 SUMMARY_DIR = './summary'
 # Max training steps
-MAX_EPISODES = 10000
 MAX_EPISODES = 2000
 # Max episode length
 MAX_EP_STEPS = 1000
