@@ -4,6 +4,7 @@ import numpy as np
 from Qlearn import *
 from gym import wrappers
 from presentNN import genPic,save2Pic
+import math
 
 RENDER_ENV = False
 ENV_NAME = 'CartPole-v0'
@@ -107,7 +108,8 @@ def train(sess,env,network,high,low):
                             high[i] = MAX_RANGE
                             low[i] = -MAX_RANGE
                         ranges.append([low[i],high[i]])
-                    genPic(network,ranges,STEP,[1,3],MAX_RANGE,BASE_DIR_PIC,t)
+                    genPic(network,ranges,STEP,[1,3],MAX_RANGE,BASE_DIR_PIC,t,theta = 0)
+                    genPic(network,ranges,STEP,[1,3],MAX_RANGE,BASE_DIR_PIC,t,theta = 10*2*math.pi/360)
                 saver.save(sess, 'savedQnetwork/' + ENV_NAME + '-dqn', global_step = t)
             # print info
             state = ""

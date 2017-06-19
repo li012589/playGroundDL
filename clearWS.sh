@@ -3,7 +3,7 @@ if [ $1 == 'qlearning' ]
 then
     echo 'clearing qlearning'
     rm -rf ./savedQnetwork/*
-    rm -rf ./summary/*
+    rm -rf ./cartpole_q/*
     rm -rf ./picDir/*
     touch ./savedQnetwork/placeholder
     touch ./picDir/placeholder
