@@ -72,7 +72,7 @@ def train(sess,env,network):
             print("TIMESTEP", t, "/ EPSILON", epsilon, "/ ACTION", a, "/ REWARD", r, "/ Q_MAX %e" % np.max(q))
             if d:
                 if reward != 200:
-                    rr = -10
+                    rr = -1*n
                 else:
                     rr = 200
                 s_batch, a_batch, _, d_batch, s2_batch = Buff.sample(n)
