@@ -20,7 +20,7 @@ FINAL_EPSILON = 0.0001 # final value of epsilon
 INITIAL_EPSILON = 0.001 # starting value of epsilon
 EXPLORE = 200000000
 
-MAX_EPISODES = 10000
+MAX_EPISODES = 100000
 # Max episode length
 MAX_EP_STEPS = 1000
 LEARNING_RATE = 0.001
@@ -33,7 +33,7 @@ MAX_RANGE = 10
 
 def train(sess,env,network):
     sess.run(tf.global_variables_initializer())
-    #network.initTarget()
+    network.initTarget()
     saver = tf.train.Saver()
     checkpoint = tf.train.get_checkpoint_state("savedMCNN")
     epsilon = INITIAL_EPSILON
@@ -77,10 +77,11 @@ def train(sess,env,network):
                     rr = 200
                 s_batch, a_batch, _, d_batch, s2_batch = Buff.sample(n)
                 Buff.clear()
-                target_q = network.predict(s2_batch)
+                #target_q = network.predict(s2_batch)
+                target_q = network.targetPredict(s2_batch)
                 y_batch = [rr/n  for _ in range(n)]
                 network.train(np.reshape(s_batch,(n,network.sDim)),np.reshape(a_batch,(n,network.aDim)),np.reshape(y_batch,(n,1)))
-                #network.targetUpdate()
+                network.targetUpdate()
                 print("Done")
                 break
             s = s2
